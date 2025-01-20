@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// Decode a Weird Text Format-8 encoded integer.
+// Decode an integer encoded in Weird Text Format-8.
 func decode(enc uint32) string {
 	decoded := uint32(0)
 	nimble := 0
@@ -102,7 +102,7 @@ func (d *Decoder) Read(p []byte) (n int, err error) {
 	return n, nil
 }
 
-// Decode reader Weird Text Format-8 data stream into writer data stream.
+// Decode reader data stream into writer data stream.
 func PipeDecoder(reader io.Reader, writer io.Writer) error {
 	decoder := &Decoder{reader: reader, isAtStart: true}
 	_, err := io.Copy(writer, decoder)
@@ -111,22 +111,3 @@ func PipeDecoder(reader io.Reader, writer io.Writer) error {
 	}
 	return nil
 }
-
-//func main() {
-//	reader := bytes.NewBuffer([]byte("ecastro"))
-//	writer := bytes.NewBuffer([]byte{})
-//	err := PipeEncoder(reader, writer)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	fmt.Println(writer.String())
-//	reader2 := bytes.NewBuffer([]byte("[267911599, 124994916]"))
-//	writer2 := bytes.NewBuffer([]byte{})
-//	err = PipeDecoder(reader2, writer2)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	fmt.Println(writer2.String())
-//	//fmt.Println(decode(124994916))
-//	fmt.Println("ok")
-//}

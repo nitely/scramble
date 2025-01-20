@@ -16,9 +16,9 @@ func decodeText(s string) (string, error) {
 }
 
 func TestDecoderExamples(t *testing.T) {
-	testCases := []struct {
-		decoded string
-		encoded string
+	cases := []struct {
+		want string
+		in   string
 	}{
 		{"foo", "[124807030]"},
 		{" foo", "[250662636]"},
@@ -40,13 +40,13 @@ func TestDecoderExamples(t *testing.T) {
 			"[267389735, 82841860, 267651166, 250793668, 233835785, 267665210, 99680277, 133170194, 124782119]",
 		},
 	}
-	for _, tc := range testCases {
-		got, err := decodeText(tc.encoded)
+	for _, c := range cases {
+		got, err := decodeText(c.in)
 		if err != nil {
-			t.Errorf("decoder error %s for %s", err, tc.encoded)
+			t.Errorf("decodeText(%s) error %s", c.in, err)
 		}
-		if got != tc.decoded {
-			t.Errorf("expected %s, got %s", tc.decoded, got)
+		if got != c.want {
+			t.Errorf("decodeText(%s) == %s, want %s", c.in, got, c.want)
 		}
 	}
 }
@@ -57,7 +57,7 @@ func TestDecoderMissingEnd(t *testing.T) {
 		t.Errorf("decoder error expected")
 	}
 	if expected := "missing ]"; err.Error() != expected {
-		t.Errorf("expected message %s got %s", expected, err.Error())
+		t.Errorf("error == %s, want %s", err.Error(), expected)
 	}
 }
 
