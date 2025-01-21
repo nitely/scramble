@@ -2,6 +2,7 @@ package scrambler
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 )
 
@@ -72,4 +73,15 @@ func TestEncoderEmptyInput(t *testing.T) {
 	if expected := "empty input"; err.Error() != expected {
 		t.Errorf("error == %s, want %s", err.Error(), expected)
 	}
+}
+
+func ExamplePipeEncoder() {
+	reader := bytes.NewBuffer([]byte("foo"))
+	writer := bytes.NewBuffer([]byte{})
+	err := PipeEncoder(reader, writer)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(writer.String())
+	// Output: [124807030]
 }

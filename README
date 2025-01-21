@@ -1,0 +1,21 @@
+# Scrambler data format
+
+## Compile
+
+```
+go build scramble.go
+```
+
+## Usage
+
+```
+$ ./scramble -encode "foo"; echo
+$ ./scramble -decode "[124807030]"; echo
+$ echo -n "foo" | ./scramble -encode | ./scramble -decode; echo
+```
+
+## Test
+
+```
+go test ./scrambler
+```

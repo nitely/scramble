@@ -2,6 +2,7 @@ package scrambler
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 )
 
@@ -108,7 +109,7 @@ func TestDecoderMissingSpace(t *testing.T) {
 }
 
 func TestDecoderBigNumber(t *testing.T) {
-	_, err := decodeText("[123123123123123123123]")
+	_, err := decodeText("[123123123123123123123123123123]")
 	if err == nil {
 		t.Errorf("decoder error expected")
 		return
@@ -152,12 +153,12 @@ func TestDecoderComma(t *testing.T) {
 }
 
 func TestDecoderSpace(t *testing.T) {
-	_, err := decodeText("[ ]")
+	_, err := decodeText("[123, ]")
 	if err == nil {
 		t.Errorf("decoder error expected")
 		return
 	}
-	if expected := "unexpected char at pos 1"; err.Error() != expected {
+	if expected := "unexpected char at pos 6"; err.Error() != expected {
 		t.Errorf("expected message %s got %s", expected, err.Error())
 	}
 }
@@ -182,4 +183,15 @@ func TestDecoderEmptyInput(t *testing.T) {
 	if expected := "empty input"; err.Error() != expected {
 		t.Errorf("expected message %s got %s", expected, err.Error())
 	}
+}
+
+func ExamplePipeDecoder() {
+	reader := bytes.NewBuffer([]byte("[124807030]"))
+	writer := bytes.NewBuffer([]byte{})
+	err := PipeDecoder(reader, writer)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(writer.String())
+	// Output: foo
 }

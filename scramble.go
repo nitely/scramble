@@ -1,17 +1,20 @@
 /*
 Simple CLI to encode/decode streams of data to/from escrambled data format.
 
+The command is meant to compose with pipes by default. You may add echo at the end
+to get a newline.
+
 Usage:
 
-$ ./scramble -encode "foo"
-$ echo -n "foo" | ./scramble -encode
-$ cat encfile | ./scramble -encode
+$ ./scramble -encode "foo"; echo
+$ echo -n "foo" | ./scramble -encode; echo
+$ cat encfile | ./scramble -encode; echo
 
-$ ./scramble -decode "[124807030]"
-$ echo -n "[124807030]" | ./scramble -decode
-$ cat decfile | ./scramble -decode
+$ ./scramble -decode "[124807030]"; echo
+$ echo -n "[124807030]" | ./scramble -decode; echo
+$ cat decfile | ./scramble -decode; echo
 
-$ echo -n "foo" | ./scramble -encode | ./scramble -decode
+$ echo -n "foo" | ./scramble -encode | ./scramble -decode; echo
 */
 
 package main

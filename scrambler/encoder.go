@@ -40,7 +40,7 @@ func encode(s string) (uint32, error) {
 }
 
 // Weird Text Format-8 Encoder.
-type Encoder struct {
+type encoder struct {
 	writer    io.Writer
 	buffer    []byte // Write buffer.
 	isAtStart bool   // Start of the stream.
@@ -61,7 +61,7 @@ func piece(n uint32, isStart, isEnd bool) string {
 }
 
 // Encode a data stream to Weird Text Format-8.
-func (e *Encoder) Write(p []byte) (n int, err error) {
+func (e *encoder) Write(p []byte) (n int, err error) {
 	e.buffer = append(e.buffer, p...)
 	written := 0
 	for len(e.buffer) >= 4 {
@@ -83,7 +83,7 @@ func (e *Encoder) Write(p []byte) (n int, err error) {
 }
 
 // Flush remaining buffer data if any and closing list symbol into the writter.
-func (e *Encoder) Flush() error {
+func (e *encoder) Flush() error {
 	if e.isAtStart && len(e.buffer) == 0 {
 		return fmt.Errorf("empty input")
 	}
@@ -109,7 +109,7 @@ func (e *Encoder) Flush() error {
 
 // Encode reader data stream into writer data stream.
 func PipeEncoder(reader io.Reader, writer io.Writer) error {
-	encoder := &Encoder{writer: writer, isAtStart: true}
+	encoder := &encoder{writer: writer, isAtStart: true}
 	_, err := io.Copy(encoder, reader)
 	if err != nil {
 		return err
