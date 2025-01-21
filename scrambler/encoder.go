@@ -87,6 +87,9 @@ func (e *Encoder) Flush() error {
 	if e.isAtStart && len(e.buffer) == 0 {
 		return fmt.Errorf("empty input")
 	}
+	if e.buffer == nil { // Already flushed.
+		return nil
+	}
 	out := "]"
 	if len(e.buffer) > 0 {
 		chunk := e.buffer[:]
