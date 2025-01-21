@@ -15,7 +15,7 @@ func decodeText(s string) (string, error) {
 	return writer.String(), nil
 }
 
-func TestDecoderFoo(t *testing.T) {
+func TestDecoderDecodeFoo(t *testing.T) {
 	want := "foo"
 	in := "[124807030]"
 	got, err := decodeText(in)

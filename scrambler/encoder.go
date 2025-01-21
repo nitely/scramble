@@ -1,7 +1,6 @@
 package scrambler
 
 import (
-	"errors"
 	"fmt"
 	"io"
 )
@@ -10,7 +9,7 @@ import (
 // a decoded/raw integer.
 func rawInteger(s string) (uint32, error) {
 	if len(s) > 4 {
-		return 0, errors.New("string must be <= 4 chars long")
+		return 0, fmt.Errorf("string must be <= 4 chars long")
 	}
 	// Zero padding.
 	for len(s) < 4 {
@@ -47,7 +46,7 @@ type Encoder struct {
 	isAtStart bool   // Start of the stream.
 }
 
-// Format a encoded integer in Weird Text Format-8.
+// Format a encoded integer to Weird Text Format-8.
 func piece(n uint32, isStart, isEnd bool) string {
 	if isStart && isEnd {
 		return fmt.Sprintf("[%d]", n)
@@ -61,7 +60,7 @@ func piece(n uint32, isStart, isEnd bool) string {
 	return fmt.Sprintf(", %d", n)
 }
 
-// Encode a data stream into Weird Text Format-8.
+// Encode a data stream to Weird Text Format-8.
 func (e *Encoder) Write(p []byte) (n int, err error) {
 	e.buffer = append(e.buffer, p...)
 	written := 0
@@ -83,14 +82,12 @@ func (e *Encoder) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-// Flush remaining buffer data into the writter.
-// That's raw data lesser than 4 chars long.
-// Write closing list symbol.
+// Flush remaining buffer data if any and closing list symbol into the writter.
 func (e *Encoder) Flush() error {
-	out := "]"
-	if e.isAtStart {
-		out = "[]"
+	if e.isAtStart && len(e.buffer) == 0 {
+		return fmt.Errorf("empty input")
 	}
+	out := "]"
 	if len(e.buffer) > 0 {
 		chunk := e.buffer[:]
 		encoded, err := encode(string(chunk))
@@ -107,7 +104,7 @@ func (e *Encoder) Flush() error {
 	return nil
 }
 
-// Encode reader data stream into writer Weird Text Format-8 data stream.
+// Encode reader data stream into writer data stream.
 func PipeEncoder(reader io.Reader, writer io.Writer) error {
 	encoder := &Encoder{writer: writer, isAtStart: true}
 	_, err := io.Copy(encoder, reader)
