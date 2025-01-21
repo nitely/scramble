@@ -107,8 +107,19 @@ func TestDecoderMissingSpace(t *testing.T) {
 	}
 }
 
-func TestDecoderBigNumer(t *testing.T) {
-	_, err := decodeText("[123123123123123123123123123]")
+func TestDecoderBigNumber(t *testing.T) {
+	_, err := decodeText("[123123123123123123123]")
+	if err == nil {
+		t.Errorf("decoder error expected")
+		return
+	}
+	if expected := "token too long error at pos 1"; err.Error() != expected {
+		t.Errorf("expected message %s got %s", expected, err.Error())
+	}
+}
+
+func TestDecoderBadNumber(t *testing.T) {
+	_, err := decodeText("[abc]")
 	if err == nil {
 		t.Errorf("decoder error expected")
 		return

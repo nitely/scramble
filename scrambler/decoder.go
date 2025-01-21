@@ -27,6 +27,9 @@ func decode(enc uint32) string {
 	return strings.TrimRight(string(result), "\000")
 }
 
+// The max token size allowed
+const maxTokenSize = 20
+
 // Split data into tokens; includes the separators
 func scanToken(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	for i, b := range data {
@@ -35,6 +38,9 @@ func scanToken(data []byte, atEOF bool) (advance int, token []byte, err error) {
 				return 1, data[:1], nil
 			}
 			return i, data[:i], nil
+		}
+		if i > maxTokenSize {
+			return 0, nil, fmt.Errorf("token too long")
 		}
 	}
 	if atEOF && len(data) > 0 {
@@ -45,9 +51,11 @@ func scanToken(data []byte, atEOF bool) (advance int, token []byte, err error) {
 
 // Decode reader data stream into writer data stream.
 func PipeDecoder(reader io.Reader, writer io.Writer) error {
+	// This is a fairly strict parser, crafted to handle untrusted text.
+	// It won't consume more than the default buffer size (64KB) for bad inputs.
+	// Input data format: ``[number(, number)*]``.
 	scanner := bufio.NewScanner(reader)
 	scanner.Split(scanToken)
-	scanner.Buffer(make([]byte, 0, 64*1024), 20)
 	atEnd := false
 	spaces, commas, pos := 0, 0, 0
 	for scanner.Scan() {
@@ -101,7 +109,7 @@ func PipeDecoder(reader io.Reader, writer io.Writer) error {
 		pos += len(tok)
 	}
 	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("decode error %s", err)
+		return fmt.Errorf("%s error at pos %d", err, pos)
 	}
 	if pos == 0 {
 		return fmt.Errorf("empty input")
