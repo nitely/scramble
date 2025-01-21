@@ -1,8 +1,8 @@
 package scrambler
 
 import (
-	"bytes"
-	"errors"
+	"bufio"
+	"fmt"
 	"io"
 	"strconv"
 	"strings"
@@ -27,87 +27,87 @@ func decode(enc uint32) string {
 	return strings.TrimRight(string(result), "\000")
 }
 
-// Weird Text Format-8 Decoder.
-type Decoder struct {
-	reader    io.Reader
-	buffer    []byte // Read buffer.
-	decoded   []byte // Decoded data buffer.
-	isAtStart bool   // Start of the stream.
-	isAtEnd   bool   // End of the stream.
-}
-
-// Decode a data stream encoded in Weird Text Format-8.
-func (d *Decoder) Read(p []byte) (n int, err error) {
-	// If there is decoded data left from a previous call,
-	// copy as much as the caller allows into their buffer.
-	if len(d.decoded) > 0 {
-		n = copy(p, d.decoded)
-		d.decoded = d.decoded[n:]
-		return n, nil
+// Split data into tokens; includes the separators
+func scanToken(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	for i, b := range data {
+		if b == ' ' || b == ',' || b == '[' || b == ']' {
+			if i == 0 {
+				return 1, data[:1], nil
+			}
+			return i, data[:i], nil
+		}
 	}
-	if d.isAtEnd {
-		return 0, io.EOF
+	if atEOF && len(data) > 0 {
+		return len(data), data, nil
 	}
-	buf := make([]byte, len(p))
-	n, err = d.reader.Read(buf)
-	if err != nil && err != io.EOF {
-		return n, err
-	}
-	d.buffer = append(d.buffer, buf[:n]...)
-	if err == io.EOF {
-		if len(d.buffer) == 0 || d.buffer[len(d.buffer)-1] != ']' {
-			return 0, errors.New("missing ]")
-		}
-		d.isAtEnd = true
-	}
-	if d.isAtStart && len(d.buffer) > 0 {
-		if d.buffer[0] != '[' {
-			return n, errors.New("missing [")
-		}
-		d.isAtStart = false
-		d.buffer = d.buffer[1:]
-	}
-	const minChunkSize = 12 // 10 digits (max uint32) + comma + space.
-	// Extract full numbers from the read buffer and
-	// decode them into the decoded buffer.
-	for len(d.buffer) > 0 {
-		idx := bytes.IndexByte(d.buffer, byte(' '))
-		if idx == -1 && d.isAtEnd {
-			idx = len(d.buffer) - 1
-		}
-		if idx == -1 && len(d.buffer) > minChunkSize {
-			return 0, errors.New("missing space separator")
-		}
-		if idx == -1 {
-			break
-		}
-		if d.buffer[idx] == ' ' && d.buffer[max(0, idx-1)] != ',' {
-			return 0, errors.New("missing comma separator")
-		}
-		end := idx
-		if d.buffer[idx] == ' ' {
-			end = idx - 1
-		}
-		chunk := d.buffer[:end]
-		num, err := strconv.ParseUint(string(chunk), 10, 32) // base 10; 32 bits.
-		if err != nil {
-			return 0, err
-		}
-		decoded := decode(uint32(num))
-		d.decoded = append(d.decoded, []byte(decoded)...)
-		d.buffer = d.buffer[idx+1:]
-	}
-	n = copy(p, d.decoded)
-	d.decoded = d.decoded[n:]
-	return n, nil
+	return
 }
 
 // Decode reader data stream into writer data stream.
 func PipeDecoder(reader io.Reader, writer io.Writer) error {
-	decoder := &Decoder{reader: reader, isAtStart: true}
-	_, err := io.Copy(writer, decoder)
-	if err != nil {
-		return err
+	scanner := bufio.NewScanner(reader)
+	scanner.Split(scanToken)
+	scanner.Buffer(make([]byte, 0, 64*1024), 20)
+	atEnd := false
+	spaces, commas, pos := 0, 0, 0
+	for scanner.Scan() {
+		tok := scanner.Text()
+		switch {
+		case pos == 0:
+			if tok != "[" {
+				return fmt.Errorf("expected [ at pos %d", pos)
+			}
+		case tok == "[":
+			return fmt.Errorf("unexpected [ at pos %d", pos)
+		case tok == "]":
+			if pos == 1 {
+				return fmt.Errorf("empty list")
+			}
+			if commas+spaces != 0 {
+				return fmt.Errorf("unexpected char at pos %d", pos)
+			}
+			atEnd = true
+			if scanner.Scan() {
+				return fmt.Errorf("unexpected char after ] at pos %d", pos)
+			}
+		case tok == ",":
+			commas++
+			if commas > 1 {
+				return fmt.Errorf("unexpected comma at pos %d", pos)
+			}
+		case tok == " ":
+			spaces++
+			if spaces > 1 || commas != 1 {
+				return fmt.Errorf("unexpected space at pos %d", pos)
+			}
+		default:
+			if commas != 1 && pos > 1 {
+				return fmt.Errorf("expected comma at pos %d", pos)
+			}
+			if spaces != 1 && pos > 1 {
+				return fmt.Errorf("expected space at pos %d", pos)
+			}
+			commas, spaces = 0, 0
+			num, err := strconv.ParseUint(tok, 10, 32) // base 10; 32 bits.
+			if err != nil {
+				return fmt.Errorf("failed to parse number at pos %d", pos)
+			}
+			decoded := decode(uint32(num))
+			_, err = writer.Write([]byte(decoded))
+			if err != nil {
+				return err
+			}
+		}
+		pos += len(tok)
+	}
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("decode error %s", err)
+	}
+	if pos == 0 {
+		return fmt.Errorf("empty input")
+	}
+	if !atEnd {
+		return fmt.Errorf("missing ]")
 	}
 	return nil
 }

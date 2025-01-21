@@ -15,6 +15,18 @@ func decodeText(s string) (string, error) {
 	return writer.String(), nil
 }
 
+func TestDecoderFoo(t *testing.T) {
+	want := "foo"
+	in := "[124807030]"
+	got, err := decodeText(in)
+	if err != nil {
+		t.Errorf("decodeText(%s) error %s", in, err)
+	}
+	if got != want {
+		t.Errorf("decodeText(%s) == %s, want %s", in, got, want)
+	}
+}
+
 func TestDecoderExamples(t *testing.T) {
 	cases := []struct {
 		want string
@@ -55,6 +67,7 @@ func TestDecoderMissingEnd(t *testing.T) {
 	_, err := decodeText("[123")
 	if err == nil {
 		t.Errorf("decoder error expected")
+		return
 	}
 	if expected := "missing ]"; err.Error() != expected {
 		t.Errorf("error == %s, want %s", err.Error(), expected)
@@ -65,8 +78,9 @@ func TestDecoderMissingStart(t *testing.T) {
 	_, err := decodeText("123]")
 	if err == nil {
 		t.Errorf("decoder error expected")
+		return
 	}
-	if expected := "missing ["; err.Error() != expected {
+	if expected := "expected [ at pos 0"; err.Error() != expected {
 		t.Errorf("expected message %s got %s", expected, err.Error())
 	}
 }
@@ -75,38 +89,86 @@ func TestDecoderMissingSeparator(t *testing.T) {
 	_, err := decodeText("[123 123]")
 	if err == nil {
 		t.Errorf("decoder error expected")
+		return
 	}
-	if expected := "missing comma separator"; err.Error() != expected {
+	if expected := "unexpected space at pos 4"; err.Error() != expected {
 		t.Errorf("expected message %s got %s", expected, err.Error())
 	}
 }
 
-//func TestDecoderMissingSpace(t *testing.T) {
-//	_, err := decodeText("[123,123]")
-//	if err == nil {
-//		t.Errorf("decoder error expected")
-//	}
-//	if expected := ""; err.Error() != expected {
-//		t.Errorf("expected message %s got %s", expected, err.Error())
-//	}
-//}
+func TestDecoderMissingSpace(t *testing.T) {
+	_, err := decodeText("[123,123]")
+	if err == nil {
+		t.Errorf("decoder error expected")
+		return
+	}
+	if expected := "expected space at pos 5"; err.Error() != expected {
+		t.Errorf("expected message %s got %s", expected, err.Error())
+	}
+}
 
 func TestDecoderBigNumer(t *testing.T) {
 	_, err := decodeText("[123123123123123123123123123]")
 	if err == nil {
 		t.Errorf("decoder error expected")
+		return
 	}
-	if expected := "missing space separator"; err.Error() != expected {
+	if expected := "failed to parse number at pos 1"; err.Error() != expected {
 		t.Errorf("expected message %s got %s", expected, err.Error())
 	}
 }
 
-//func TestDecoderExtraSeparator(t *testing.T) {
-//	_, err := decodeText("[123,,123]")
-//	if err == nil {
-//		t.Errorf("decoder error expected")
-//	}
-//	if expected := ""; err.Error() != expected {
-//		t.Errorf("expected message %s got %s", expected, err.Error())
-//	}
-//}
+func TestDecoderExtraSeparator(t *testing.T) {
+	_, err := decodeText("[123,,123]")
+	if err == nil {
+		t.Errorf("decoder error expected")
+		return
+	}
+	if expected := "unexpected comma at pos 5"; err.Error() != expected {
+		t.Errorf("expected message %s got %s", expected, err.Error())
+	}
+}
+
+func TestDecoderComma(t *testing.T) {
+	_, err := decodeText("[123,]")
+	if err == nil {
+		t.Errorf("decoder error expected")
+		return
+	}
+	if expected := "unexpected char at pos 5"; err.Error() != expected {
+		t.Errorf("expected message %s got %s", expected, err.Error())
+	}
+}
+
+func TestDecoderSpace(t *testing.T) {
+	_, err := decodeText("[ ]")
+	if err == nil {
+		t.Errorf("decoder error expected")
+		return
+	}
+	if expected := "unexpected char at pos 1"; err.Error() != expected {
+		t.Errorf("expected message %s got %s", expected, err.Error())
+	}
+}
+
+func TestDecoderEmptyBrackets(t *testing.T) {
+	_, err := decodeText("[]")
+	if err == nil {
+		t.Errorf("decoder error expected")
+		return
+	}
+	if expected := "empty list"; err.Error() != expected {
+		t.Errorf("expected message %s got %s", expected, err.Error())
+	}
+}
+
+func TestDecoderEmptyInput(t *testing.T) {
+	_, err := decodeText("")
+	if err == nil {
+		t.Errorf("decoder error expected")
+		return
+	}
+	if expected := "empty input"; err.Error() != expected {
+		t.Errorf("expected message %s got %s", expected, err.Error())
+	}
+}
