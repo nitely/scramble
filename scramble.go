@@ -3,15 +3,15 @@ Simple CLI to encode/decode streams of data to/from escrambled data format.
 
 Usage:
 
-$ ./scrambled-data-format -encode "foo"
-$ echo -n "foo" | ./scrambled-data-format -encode
-$ cat encfile | ./scrambled-data-format -encode
+$ ./scramble -encode "foo"
+$ echo -n "foo" | ./scramble -encode
+$ cat encfile | ./scramble -encode
 
-$ ./scrambled-data-format -decode "[124807030]"
-$ echo -n "[124807030]" | ./scrambled-data-format -decode
-$ cat decfile | ./scrambled-data-format -decode
+$ ./scramble -decode "[124807030]"
+$ echo -n "[124807030]" | ./scramble -decode
+$ cat decfile | ./scramble -decode
 
-$ echo -n "foo" | ./scrambled-data-format -encode | ./scrambled-data-format -decode
+$ echo -n "foo" | ./scramble -encode | ./scramble -decode
 */
 
 package main
