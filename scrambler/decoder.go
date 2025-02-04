@@ -11,12 +11,12 @@ import (
 // Decode an integer encoded in Weird Text Format-8.
 func decode(enc uint32) string {
 	decoded := uint32(0)
-	nimble := 0
+	nibble := 0
 	for i := range 32 {
-		sourcePos := nimble*4 + (i / 8)              // Position where the bit was placed during encoding.
+		sourcePos := nibble*4 + (i / 8)              // Position where the bit was placed during encoding.
 		bit := (enc & (1 << sourcePos)) >> sourcePos // Extract the bit from its encoded position.
 		decoded |= bit << i                          // Place the bit back in its original position.
-		nimble = (nimble + 1) % 8                    // Move to the next nimble wrapping around.
+		nibble = (nibble + 1) % 8                    // Move to the next nibble wrapping around.
 	}
 	// Uint32 to 4 chars string.
 	result := make([]byte, 4)

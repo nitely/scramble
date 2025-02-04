@@ -27,12 +27,12 @@ import (
 	"io"
 	"os"
 
-	"github.com/nitely/scrambled-data-format/scrambler"
+	"github.com/nitely/scramble/scrambler"
 )
 
 func main() {
-	encodeFlag := flag.Bool("encode", false, "Encode the input text to Base64")
-	decodeFlag := flag.Bool("decode", false, "Decode the input Base64 text")
+	encodeFlag := flag.Bool("encode", false, "Encode the input to Scramble")
+	decodeFlag := flag.Bool("decode", false, "Decode the input from Scramble")
 	flag.Parse()
 	if *encodeFlag && *decodeFlag {
 		fmt.Fprintln(os.Stderr, "Error: You cannot use both -encode and -decode at the same time.")

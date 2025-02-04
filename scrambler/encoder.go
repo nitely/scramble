@@ -29,12 +29,12 @@ func encode(s string) (uint32, error) {
 	if err != nil {
 		return 0, err
 	}
-	nimble := 0
+	nibble := 0
 	result := uint32(0)
 	for i := range 32 {
 		bit := (decoded & (1 << i)) >> i      // Get bit at position i.
-		result |= bit << (nimble*4 + (i / 8)) // Shift the bit to the right nimble start position + bit offset.
-		nimble = (nimble + 1) % 8             // Move to the next nimble wrapping around.
+		result |= bit << (nibble*4 + (i / 8)) // Shift the bit to the right nibble start position + bit offset.
+		nibble = (nibble + 1) % 8             // Move to the next nibble wrapping around.
 	}
 	return result, nil
 }

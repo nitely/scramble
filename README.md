@@ -1,4 +1,7 @@
-# Scrambler data format
+# Scramble
+
+Scramble is a data format that encodes byte nibbles by scrambling the bits.
+This library supports data stream encoding/decoding to/from Scramble.
 
 ## Compile
 
@@ -19,3 +22,7 @@ $ echo -n "foo" | ./scramble -encode | ./scramble -decode; echo
 ```
 go test ./scrambler
 ```
+
+## LICENSE
+
+MIT

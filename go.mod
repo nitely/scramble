@@ -1,3 +1,3 @@
-module github.com/nitely/scrambled-data-format
+module github.com/nitely/scramble
 
 go 1.22.5
