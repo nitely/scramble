@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// Decode an integer encoded in Weird Text Format-8.
+// Decode an integer encoded in Scramble.
 func decode(enc uint32) string {
 	decoded := uint32(0)
 	nibble := 0

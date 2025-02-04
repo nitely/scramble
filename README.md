@@ -2,6 +2,7 @@
 
 Scramble is a data format that encodes byte nibbles by scrambling the bits.
 This library supports data stream encoding/decoding to/from Scramble.
+This lib uses no dependencies.
 
 ## Compile
 

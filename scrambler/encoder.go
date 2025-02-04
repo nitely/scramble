@@ -22,8 +22,7 @@ func rawInteger(s string) (uint32, error) {
 	return result, nil
 }
 
-// Encode string of up to 4 chars into
-// a Weird Text Format-8 integer.
+// Encode string of up to 4 chars into a Scramble integer.
 func encode(s string) (uint32, error) {
 	decoded, err := rawInteger(s)
 	if err != nil {
@@ -39,14 +38,14 @@ func encode(s string) (uint32, error) {
 	return result, nil
 }
 
-// Weird Text Format-8 Encoder.
+// Scramble Encoder.
 type encoder struct {
 	writer    io.Writer
 	buffer    []byte // Write buffer.
 	isAtStart bool   // Start of the stream.
 }
 
-// Format a encoded integer to Weird Text Format-8.
+// Format a encoded integer to Scramble.
 func piece(n uint32, isStart, isEnd bool) string {
 	if isStart && isEnd {
 		return fmt.Sprintf("[%d]", n)
@@ -60,7 +59,7 @@ func piece(n uint32, isStart, isEnd bool) string {
 	return fmt.Sprintf(", %d", n)
 }
 
-// Encode a data stream to Weird Text Format-8.
+// Encode a data stream to Scramble.
 func (e *encoder) Write(p []byte) (n int, err error) {
 	e.buffer = append(e.buffer, p...)
 	written := 0
